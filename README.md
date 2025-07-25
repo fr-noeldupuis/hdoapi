@@ -94,23 +94,47 @@ Content-Type: application/json
 }
 ```
 
-### Pilgrimage Management (Planned)
+### Pilgrimage Management ✅ (Implemented)
 - `GET /api/pilgrimages` - List all pilgrimages
 - `GET /api/pilgrimages/{id}` - Get pilgrimage details
 - `POST /api/pilgrimages` - Create new pilgrimage
 - `PUT /api/pilgrimages/{id}` - Update pilgrimage
 - `DELETE /api/pilgrimages/{id}` - Remove pilgrimage
 
+**Request/Response Examples:**
+
+**Create a new pilgrimage:**
+```bash
+POST /api/pilgrimages
+Content-Type: application/json
+
+{
+  "name": "Lourdes 2025",
+  "startDate": "2025-06-15",
+  "endDate": "2025-06-22"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "Lourdes 2025",
+  "startDate": "2025-06-15",
+  "endDate": "2025-06-22"
+}
+```
+
 ## 🗺 Roadmap
 
-### Phase 1: Core Features (Current)
+### Phase 1: Core Features ✅ (Completed)
 - [ ] Set up PostgreSQL database configuration
 - [x] Implement Person entity and repository
 - [x] Create Person REST controller
 - [x] Basic CRUD operations for Person entity
-- [ ] Implement Pilgrimage entity and repository
-- [ ] Create Pilgrimage REST controller
-- [ ] Basic CRUD operations for Pilgrimage entity
+- [x] Implement Pilgrimage entity and repository
+- [x] Create Pilgrimage REST controller
+- [x] Basic CRUD operations for Pilgrimage entity
 
 ### Phase 2: Enhanced Features
 - [ ] Authentication and authorization
@@ -140,29 +164,47 @@ src/
 ├── main/
 │   ├── java/fr/noeldupuis/hdoapi/
 │   │   ├── HdoapiApplication.java          # Main application class
-│   │   └── persons/                        # Person management module
+│   │   ├── persons/                        # Person management module
+│   │   │   ├── entity/
+│   │   │   │   └── Person.java             # Person JPA entity
+│   │   │   ├── dto/
+│   │   │   │   ├── PersonDto.java          # Person response DTO
+│   │   │   │   ├── CreatePersonRequest.java # Person creation DTO
+│   │   │   │   └── UpdatePersonRequest.java # Person update DTO
+│   │   │   ├── repository/
+│   │   │   │   └── PersonRepository.java   # Person data access
+│   │   │   ├── service/
+│   │   │   │   ├── PersonService.java      # Person service interface
+│   │   │   │   └── PersonServiceImpl.java  # Person service implementation
+│   │   │   └── controller/
+│   │   │       └── PersonController.java   # Person REST controller
+│   │   └── pilgrimage/                     # Pilgrimage management module
 │   │       ├── entity/
-│   │       │   └── Person.java             # Person JPA entity
+│   │       │   └── Pilgrimage.java         # Pilgrimage JPA entity
 │   │       ├── dto/
-│   │       │   ├── PersonDto.java          # Person response DTO
-│   │       │   ├── CreatePersonRequest.java # Person creation DTO
-│   │       │   └── UpdatePersonRequest.java # Person update DTO
+│   │       │   ├── PilgrimageDto.java      # Pilgrimage response DTO
+│   │       │   ├── CreatePilgrimageRequest.java # Pilgrimage creation DTO
+│   │       │   └── UpdatePilgrimageRequest.java # Pilgrimage update DTO
 │   │       ├── repository/
-│   │       │   └── PersonRepository.java   # Person data access
+│   │       │   └── PilgrimageRepository.java # Pilgrimage data access
 │   │       ├── service/
-│   │       │   ├── PersonService.java      # Person service interface
-│   │       │   └── PersonServiceImpl.java  # Person service implementation
+│   │       │   ├── PilgrimageService.java  # Pilgrimage service interface
+│   │       │   └── PilgrimageServiceImpl.java # Pilgrimage service implementation
 │   │       └── controller/
-│   │           └── PersonController.java   # Person REST controller
+│   │           └── PilgrimageController.java # Pilgrimage REST controller
 │   └── resources/
 │       ├── application.properties          # Application configuration
 │       └── static/                         # Static resources
 └── test/
     └── java/fr/noeldupuis/hdoapi/
-        └── persons/                        # Person management tests
-            ├── service/PersonServiceTest.java
-            ├── controller/PersonControllerTest.java
-            └── repository/PersonRepositoryTest.java
+        ├── persons/                        # Person management tests
+        │   ├── service/PersonServiceTest.java
+        │   ├── controller/PersonControllerTest.java
+        │   └── repository/PersonRepositoryTest.java
+        └── pilgrimage/                     # Pilgrimage management tests
+            ├── service/PilgrimageServiceTest.java
+            ├── controller/PilgrimageControllerTest.java
+            └── repository/PilgrimageRepositoryTest.java
 ```
 
 ## 🔧 Configuration
@@ -179,10 +221,10 @@ The application configuration is managed through `application.properties`. Key c
 The project includes comprehensive test coverage for all layers:
 
 ### Test Coverage
-- **Service Layer**: 8 unit tests with Mockito
-- **Controller Layer**: 8 integration tests with MockMvc
-- **Repository Layer**: 8 integration tests with TestEntityManager
-- **Total**: 25 tests (100% pass rate)
+- **Person Management**: 24 tests (8 service + 8 controller + 8 repository)
+- **Pilgrimage Management**: 24 tests (8 service + 8 controller + 8 repository)
+- **Application Tests**: 1 integration test
+- **Total**: 49 tests (100% pass rate)
 
 ### Running Tests
 ```bash
@@ -191,6 +233,7 @@ The project includes comprehensive test coverage for all layers:
 
 # Run specific test class
 ./mvnw test -Dtest=PersonServiceTest
+./mvnw test -Dtest=PilgrimageServiceTest
 
 # Run tests with coverage report
 ./mvnw test jacoco:report
@@ -221,17 +264,18 @@ For support and questions, please contact the development team or create an issu
 
 ### ✅ Completed Features (Latest Release)
 - **Person Management System**: Complete CRUD operations for pilgrimage participants
+- **Pilgrimage Management System**: Complete CRUD operations for pilgrimage events
 - **RESTful API**: Full REST endpoints with proper HTTP status codes
-- **Comprehensive Testing**: 25 tests covering all layers (100% pass rate)
+- **Comprehensive Testing**: 49 tests covering all layers (100% pass rate)
 - **DTO Pattern**: Clean separation between API contracts and internal models
 - **Service Layer**: Business logic with proper error handling
 - **Database Integration**: H2 in-memory database for development
 
 ### 🔄 Current Status
 - **Person Management**: ✅ Fully implemented and tested
-- **Pilgrimage Management**: 🚧 Planned for next phase
+- **Pilgrimage Management**: ✅ Fully implemented and tested
 - **Database**: H2 for development, PostgreSQL configuration pending
 
 ---
 
-**Note**: This project is in active development. The Person management system is complete and ready for use. Pilgrimage management features are planned for the next development phase.
+**Note**: This project is in active development. Both Person and Pilgrimage management systems are complete and ready for use. Phase 1 core features are fully implemented. Next development phase will focus on enhanced features like authentication, enrollment management, and PostgreSQL configuration.
