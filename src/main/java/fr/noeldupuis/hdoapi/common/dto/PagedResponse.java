@@ -1,5 +1,6 @@
 package fr.noeldupuis.hdoapi.common.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.domain.Page;
@@ -10,9 +11,13 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@Schema(description = "Paginated response with HATEOAS links")
 public class PagedResponse<T> extends RepresentationModel<PagedResponse<T>> {
     
+    @Schema(description = "List of items in the current page")
     private List<T> content;
+    
+    @Schema(description = "Pagination metadata")
     private PageMetadata pageMetadata;
     
     public PagedResponse(List<T> content, Page<?> page, String baseUrl) {
@@ -47,14 +52,30 @@ public class PagedResponse<T> extends RepresentationModel<PagedResponse<T>> {
     }
     
     @Data
+    @Schema(description = "Pagination metadata information")
     public static class PageMetadata {
+        @Schema(description = "Current page number (0-based)", example = "0")
         private int page;
+        
+        @Schema(description = "Number of items per page", example = "10")
         private int size;
+        
+        @Schema(description = "Total number of items across all pages", example = "25")
         private long totalElements;
+        
+        @Schema(description = "Total number of pages", example = "3")
         private int totalPages;
+        
+        @Schema(description = "Whether this is the first page", example = "true")
         private boolean first;
+        
+        @Schema(description = "Whether this is the last page", example = "false")
         private boolean last;
+        
+        @Schema(description = "Whether there is a next page", example = "true")
         private boolean hasNext;
+        
+        @Schema(description = "Whether there is a previous page", example = "false")
         private boolean hasPrevious;
         
         public PageMetadata(Page<?> page) {
