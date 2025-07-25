@@ -137,6 +137,33 @@ The project includes comprehensive Docker support with helper scripts:
 
 The API currently provides the following endpoints with **HATEOAS support** and **pagination**:
 
+### 🔗 API Documentation
+
+**Swagger UI is available at:** http://localhost:8080/swagger-ui.html
+
+The interactive API documentation provides:
+- Complete endpoint descriptions
+- Request/response schemas
+- Example requests and responses
+- Try-it-out functionality
+- HATEOAS link documentation
+
+**OpenAPI Specification:** http://localhost:8080/api-docs
+
+## 🗺️ Roadmap
+
+- [x] **Person Management** - CRUD operations for pilgrimage participants
+- [x] **Pilgrimage Management** - CRUD operations for pilgrimage events
+- [x] **Docker Support** - Containerized application with PostgreSQL
+- [x] **HATEOAS** - Hypermedia-driven REST API
+- [x] **Pagination & Sorting** - Efficient data retrieval and ordering
+- [x] **API Documentation** - Swagger/OpenAPI documentation with interactive UI
+- [ ] **Authentication & Authorization** - Secure access control
+- [ ] **Validation** - Input validation and error handling
+- [ ] **Logging** - Comprehensive logging and monitoring
+- [ ] **Testing** - Integration tests and API testing
+- [ ] **CI/CD** - Automated build and deployment pipeline
+
 ### Person Management ✅ (Implemented)
 - `GET /api/persons` - List all participants (with pagination & sorting)
 - `GET /api/persons/{id}` - Get participant details
@@ -439,6 +466,7 @@ For support and questions, please contact the development team or create an issu
 - **RESTful API**: Full REST endpoints with proper HTTP status codes
 - **HATEOAS Support**: Hypermedia-driven API with self-discoverable links
 - **Pagination & Sorting**: Efficient data retrieval with configurable page size and sorting
+- **API Documentation**: Interactive Swagger UI with complete OpenAPI specification
 - **Comprehensive Testing**: 49 tests covering all layers (100% pass rate)
 - **DTO Pattern**: Clean separation between API contracts and internal models
 - **Service Layer**: Business logic with proper error handling
