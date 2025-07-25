@@ -9,6 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,21 +58,26 @@ class PersonControllerTest {
     void getAllPersons_ShouldReturnAllPersons() throws Exception {
         // Given
         List<PersonDto> persons = Arrays.asList(personDto1, personDto2);
-        when(personService.getAllPersons()).thenReturn(persons);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<PersonDto> personPage = new PageImpl<>(persons, pageable, persons.size());
+        when(personService.getAllPersons(any(Pageable.class))).thenReturn(personPage);
 
         // When & Then
         mockMvc.perform(get("/api/persons"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].firstName").value("John"))
-                .andExpect(jsonPath("$[0].lastName").value("Doe"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].firstName").value("Jane"))
-                .andExpect(jsonPath("$[1].lastName").value("Smith"));
+                .andExpect(content().contentType("application/hal+json"))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].firstName").value("John"))
+                .andExpect(jsonPath("$.content[0].lastName").value("Doe"))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[1].firstName").value("Jane"))
+                .andExpect(jsonPath("$.content[1].lastName").value("Smith"))
+                .andExpect(jsonPath("$.pageMetadata.page").value(0))
+                .andExpect(jsonPath("$.pageMetadata.size").value(10))
+                .andExpect(jsonPath("$.pageMetadata.totalElements").value(2));
 
-        verify(personService).getAllPersons();
+        verify(personService).getAllPersons(any(Pageable.class));
     }
 
     @Test
@@ -79,11 +88,13 @@ class PersonControllerTest {
         // When & Then
         mockMvc.perform(get("/api/persons/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
-                .andExpect(jsonPath("$.birthDate").value("1990-01-01"));
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/persons/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/persons"));
 
         verify(personService).getPersonById(1L);
     }
@@ -110,11 +121,13 @@ class PersonControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Doe"))
-                .andExpect(jsonPath("$.birthDate").value("1990-01-01"));
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/persons/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/persons"));
 
         verify(personService).createPerson(any(CreatePersonRequest.class));
     }
@@ -131,11 +144,13 @@ class PersonControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.firstName").value("John"))
                 .andExpect(jsonPath("$.lastName").value("Updated"))
-                .andExpect(jsonPath("$.birthDate").value("1990-01-01"));
+                .andExpect(jsonPath("$.birthDate").value("1990-01-01"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/persons/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/persons"));
 
         verify(personService).updatePerson(eq(1L), any(UpdatePersonRequest.class));
     }

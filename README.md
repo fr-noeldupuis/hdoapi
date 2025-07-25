@@ -18,6 +18,7 @@ The HDO API is designed to streamline the management of Lourdes pilgrimages by p
 - **Additional Libraries**:
   - Spring Data JPA for database operations
   - Spring Web for RESTful endpoints
+  - Spring HATEOAS for hypermedia support
   - Lombok for reducing boilerplate code
   - JUnit 5 for testing
   - Mockito for mocking in tests
@@ -29,9 +30,12 @@ The HDO API is designed to streamline the management of Lourdes pilgrimages by p
 
 - Java 17 or higher
 - Maven 3.6+
+- Docker and Docker Compose (for containerized deployment)
 - PostgreSQL (for production)
 
 ### Installation
+
+#### Option 1: Local Development
 
 1. **Clone the repository**
    ```bash
@@ -51,6 +55,35 @@ The HDO API is designed to streamline the management of Lourdes pilgrimages by p
 
 The application will start on `http://localhost:8080`
 
+#### Option 2: Docker Deployment (Recommended)
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd hdoapi
+   ```
+
+2. **Make the helper script executable**
+   ```bash
+   chmod +x docker-scripts.sh
+   ```
+
+3. **Start the application**
+
+   **For Production (PostgreSQL):**
+   ```bash
+   ./docker-scripts.sh prod
+   # or
+   docker-compose up -d
+   ```
+
+   **For Development (H2):**
+   ```bash
+   ./docker-scripts.sh dev
+   # or
+   docker-compose -f docker-compose.dev.yml up -d
+   ```
+
 ### Development Setup
 
 For development, the application uses H2 in-memory database. The H2 console is available at:
@@ -59,18 +92,101 @@ For development, the application uses H2 in-memory database. The H2 console is a
 - Username: `sa`
 - Password: (leave empty)
 
+### Docker Management
+
+The project includes comprehensive Docker support with helper scripts:
+
+```bash
+# Build Docker image
+./docker-scripts.sh build
+
+# Start development environment (H2 database)
+./docker-scripts.sh dev
+
+# Start production environment (PostgreSQL)
+./docker-scripts.sh prod
+
+# Stop all containers
+./docker-scripts.sh stop
+
+# View logs
+./docker-scripts.sh logs
+
+# Clean up everything
+./docker-scripts.sh clean
+
+# Access container shell
+./docker-scripts.sh shell
+
+# Run tests in Docker
+./docker-scripts.sh test
+
+# Show help
+./docker-scripts.sh help
+```
+
+**Docker Services:**
+- **Production**: PostgreSQL database + HDO API application
+- **Development**: H2 in-memory database + HDO API application
+- **Ports**: 
+  - API: `http://localhost:8080`
+  - PostgreSQL: `localhost:5432`
+  - H2 Console: `http://localhost:8080/h2-console`
+
 ## 📋 API Endpoints
 
-The API currently provides the following endpoints:
+The API currently provides the following endpoints with **HATEOAS support** and **pagination**:
 
 ### Person Management ✅ (Implemented)
-- `GET /api/persons` - List all participants
+- `GET /api/persons` - List all participants (with pagination & sorting)
 - `GET /api/persons/{id}` - Get participant details
 - `POST /api/persons` - Create new participant
 - `PUT /api/persons/{id}` - Update participant
 - `DELETE /api/persons/{id}` - Remove participant
 
+**Pagination Parameters:**
+- `page` (default: 0) - Page number (0-based)
+- `size` (default: 10) - Number of items per page
+- `sortBy` (default: "id") - Field to sort by
+- `sortDir` (default: "asc") - Sort direction ("asc" or "desc")
+
 **Request/Response Examples:**
+
+**Get paginated persons:**
+```bash
+GET /api/persons?page=0&size=5&sortBy=firstName&sortDir=asc
+```
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "birthDate": "1990-01-01",
+      "_links": {
+        "self": {"href": "/api/persons/1"},
+        "collection": {"href": "/api/persons"}
+      }
+    }
+  ],
+  "pageMetadata": {
+    "page": 0,
+    "size": 5,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true,
+    "hasNext": false,
+    "hasPrevious": false
+  },
+  "_links": {
+    "self": {"href": "/api/persons?page=0&size=5"}
+  }
+}
+```
 
 **Create a new person:**
 ```bash
@@ -90,18 +206,58 @@ Content-Type: application/json
   "id": 1,
   "firstName": "John",
   "lastName": "Doe",
-  "birthDate": "1990-01-01"
+  "birthDate": "1990-01-01",
+  "_links": {
+    "self": {"href": "/api/persons/1"},
+    "collection": {"href": "/api/persons"}
+  }
 }
 ```
 
 ### Pilgrimage Management ✅ (Implemented)
-- `GET /api/pilgrimages` - List all pilgrimages
+- `GET /api/pilgrimages` - List all pilgrimages (with pagination & sorting)
 - `GET /api/pilgrimages/{id}` - Get pilgrimage details
 - `POST /api/pilgrimages` - Create new pilgrimage
 - `PUT /api/pilgrimages/{id}` - Update pilgrimage
 - `DELETE /api/pilgrimages/{id}` - Remove pilgrimage
 
 **Request/Response Examples:**
+
+**Get paginated pilgrimages:**
+```bash
+GET /api/pilgrimages?page=0&size=10&sortBy=name&sortDir=asc
+```
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Lourdes 2025",
+      "startDate": "2025-06-15",
+      "endDate": "2025-06-22",
+      "_links": {
+        "self": {"href": "/api/pilgrimages/1"},
+        "collection": {"href": "/api/pilgrimages"}
+      }
+    }
+  ],
+  "pageMetadata": {
+    "page": 0,
+    "size": 10,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true,
+    "hasNext": false,
+    "hasPrevious": false
+  },
+  "_links": {
+    "self": {"href": "/api/pilgrimages?page=0&size=10"}
+  }
+}
+```
 
 **Create a new pilgrimage:**
 ```bash
@@ -121,20 +277,26 @@ Content-Type: application/json
   "id": 1,
   "name": "Lourdes 2025",
   "startDate": "2025-06-15",
-  "endDate": "2025-06-22"
+  "endDate": "2025-06-22",
+  "_links": {
+    "self": {"href": "/api/pilgrimages/1"},
+    "collection": {"href": "/api/pilgrimages"}
+  }
 }
 ```
 
 ## 🗺 Roadmap
 
 ### Phase 1: Core Features ✅ (Completed)
-- [ ] Set up PostgreSQL database configuration
+- [x] Set up PostgreSQL database configuration
 - [x] Implement Person entity and repository
 - [x] Create Person REST controller
 - [x] Basic CRUD operations for Person entity
 - [x] Implement Pilgrimage entity and repository
 - [x] Create Pilgrimage REST controller
 - [x] Basic CRUD operations for Pilgrimage entity
+- [x] Docker containerization setup
+- [x] Multi-environment Docker configurations
 
 ### Phase 2: Enhanced Features
 - [ ] Authentication and authorization
@@ -160,51 +322,60 @@ Content-Type: application/json
 ## 🏗 Project Structure
 
 ```
-src/
-├── main/
-│   ├── java/fr/noeldupuis/hdoapi/
-│   │   ├── HdoapiApplication.java          # Main application class
-│   │   ├── persons/                        # Person management module
-│   │   │   ├── entity/
-│   │   │   │   └── Person.java             # Person JPA entity
-│   │   │   ├── dto/
-│   │   │   │   ├── PersonDto.java          # Person response DTO
-│   │   │   │   ├── CreatePersonRequest.java # Person creation DTO
-│   │   │   │   └── UpdatePersonRequest.java # Person update DTO
-│   │   │   ├── repository/
-│   │   │   │   └── PersonRepository.java   # Person data access
-│   │   │   ├── service/
-│   │   │   │   ├── PersonService.java      # Person service interface
-│   │   │   │   └── PersonServiceImpl.java  # Person service implementation
-│   │   │   └── controller/
-│   │   │       └── PersonController.java   # Person REST controller
-│   │   └── pilgrimage/                     # Pilgrimage management module
-│   │       ├── entity/
-│   │       │   └── Pilgrimage.java         # Pilgrimage JPA entity
-│   │       ├── dto/
-│   │       │   ├── PilgrimageDto.java      # Pilgrimage response DTO
-│   │       │   ├── CreatePilgrimageRequest.java # Pilgrimage creation DTO
-│   │       │   └── UpdatePilgrimageRequest.java # Pilgrimage update DTO
-│   │       ├── repository/
-│   │       │   └── PilgrimageRepository.java # Pilgrimage data access
-│   │       ├── service/
-│   │       │   ├── PilgrimageService.java  # Pilgrimage service interface
-│   │       │   └── PilgrimageServiceImpl.java # Pilgrimage service implementation
-│   │       └── controller/
-│   │           └── PilgrimageController.java # Pilgrimage REST controller
-│   └── resources/
-│       ├── application.properties          # Application configuration
-│       └── static/                         # Static resources
-└── test/
-    └── java/fr/noeldupuis/hdoapi/
-        ├── persons/                        # Person management tests
-        │   ├── service/PersonServiceTest.java
-        │   ├── controller/PersonControllerTest.java
-        │   └── repository/PersonRepositoryTest.java
-        └── pilgrimage/                     # Pilgrimage management tests
-            ├── service/PilgrimageServiceTest.java
-            ├── controller/PilgrimageControllerTest.java
-            └── repository/PilgrimageRepositoryTest.java
+hdoapi/
+├── src/
+│   ├── main/
+│   │   ├── java/fr/noeldupuis/hdoapi/
+│   │   │   ├── HdoapiApplication.java          # Main application class
+│   │   │   ├── persons/                        # Person management module
+│   │   │   │   ├── entity/
+│   │   │   │   │   └── Person.java             # Person JPA entity
+│   │   │   │   ├── dto/
+│   │   │   │   │   ├── PersonDto.java          # Person response DTO
+│   │   │   │   │   ├── CreatePersonRequest.java # Person creation DTO
+│   │   │   │   │   └── UpdatePersonRequest.java # Person update DTO
+│   │   │   │   ├── repository/
+│   │   │   │   │   └── PersonRepository.java   # Person data access
+│   │   │   │   ├── service/
+│   │   │   │   │   ├── PersonService.java      # Person service interface
+│   │   │   │   │   └── PersonServiceImpl.java  # Person service implementation
+│   │   │   │   └── controller/
+│   │   │   │       └── PersonController.java   # Person REST controller
+│   │   │   └── pilgrimage/                     # Pilgrimage management module
+│   │   │       ├── entity/
+│   │   │       │   └── Pilgrimage.java         # Pilgrimage JPA entity
+│   │   │       ├── dto/
+│   │   │       │   ├── PilgrimageDto.java      # Pilgrimage response DTO
+│   │   │       │   ├── CreatePilgrimageRequest.java # Pilgrimage creation DTO
+│   │   │       │   └── UpdatePilgrimageRequest.java # Pilgrimage update DTO
+│   │   │       ├── repository/
+│   │   │       │   └── PilgrimageRepository.java # Pilgrimage data access
+│   │   │       ├── service/
+│   │   │       │   ├── PilgrimageService.java  # Pilgrimage service interface
+│   │   │       │   └── PilgrimageServiceImpl.java # Pilgrimage service implementation
+│   │   │       └── controller/
+│   │   │           └── PilgrimageController.java # Pilgrimage REST controller
+│   │   └── resources/
+│   │       ├── application.properties          # Application configuration
+│   │       └── static/                         # Static resources
+│   └── test/
+│       └── java/fr/noeldupuis/hdoapi/
+│           ├── persons/                        # Person management tests
+│           │   ├── service/PersonServiceTest.java
+│           │   ├── controller/PersonControllerTest.java
+│           │   └── repository/PersonRepositoryTest.java
+│           └── pilgrimage/                     # Pilgrimage management tests
+│               ├── service/PilgrimageServiceTest.java
+│               ├── controller/PilgrimageControllerTest.java
+│               └── repository/PilgrimageRepositoryTest.java
+├── Dockerfile                               # Multi-stage Docker build
+├── .dockerignore                            # Docker build exclusions
+├── docker-compose.yml                       # Production environment (PostgreSQL)
+├── docker-compose.dev.yml                   # Development environment (H2)
+├── docker-scripts.sh                        # Docker management helper script
+├── pom.xml                                  # Maven project configuration
+├── LICENSE                                  # Apache 2.0 License
+└── README.md                                # Project documentation
 ```
 
 ## 🔧 Configuration
@@ -266,16 +437,23 @@ For support and questions, please contact the development team or create an issu
 - **Person Management System**: Complete CRUD operations for pilgrimage participants
 - **Pilgrimage Management System**: Complete CRUD operations for pilgrimage events
 - **RESTful API**: Full REST endpoints with proper HTTP status codes
+- **HATEOAS Support**: Hypermedia-driven API with self-discoverable links
+- **Pagination & Sorting**: Efficient data retrieval with configurable page size and sorting
 - **Comprehensive Testing**: 49 tests covering all layers (100% pass rate)
 - **DTO Pattern**: Clean separation between API contracts and internal models
 - **Service Layer**: Business logic with proper error handling
 - **Database Integration**: H2 in-memory database for development
+- **Docker Containerization**: Complete Docker setup with multi-stage builds
+- **Multi-Environment Support**: Production (PostgreSQL) and Development (H2) configurations
+- **Docker Management Scripts**: Comprehensive helper scripts for Docker operations
 
 ### 🔄 Current Status
 - **Person Management**: ✅ Fully implemented and tested
 - **Pilgrimage Management**: ✅ Fully implemented and tested
-- **Database**: H2 for development, PostgreSQL configuration pending
+- **Database**: H2 for development, PostgreSQL for production (both containerized)
+- **Docker Setup**: ✅ Production-ready with PostgreSQL and development with H2
+- **Deployment**: Ready for containerized deployment
 
 ---
 
-**Note**: This project is in active development. Both Person and Pilgrimage management systems are complete and ready for use. Phase 1 core features are fully implemented. Next development phase will focus on enhanced features like authentication, enrollment management, and PostgreSQL configuration.
+**Note**: This project is in active development. Both Person and Pilgrimage management systems are complete and ready for use. Phase 1 core features are fully implemented including Docker containerization. The application is now ready for both local development and production deployment using Docker. Next development phase will focus on enhanced features like authentication, enrollment management, and advanced business logic.

@@ -6,11 +6,11 @@ import fr.noeldupuis.hdoapi.persons.dto.UpdatePersonRequest;
 import fr.noeldupuis.hdoapi.persons.entity.Person;
 import fr.noeldupuis.hdoapi.persons.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +19,9 @@ public class PersonServiceImpl implements PersonService {
     private final PersonRepository personRepository;
     
     @Override
-    public List<PersonDto> getAllPersons() {
-        return personRepository.findAll()
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+    public Page<PersonDto> getAllPersons(Pageable pageable) {
+        return personRepository.findAll(pageable)
+                .map(this::convertToDto);
     }
     
     @Override

@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -48,15 +52,17 @@ class PilgrimageServiceTest {
     void getAllPilgrimages_ShouldReturnAllPilgrimages() {
         // Given
         List<Pilgrimage> pilgrimages = Arrays.asList(pilgrimage1, pilgrimage2);
-        when(pilgrimageRepository.findAll()).thenReturn(pilgrimages);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Pilgrimage> pilgrimagePage = new PageImpl<>(pilgrimages, pageable, pilgrimages.size());
+        when(pilgrimageRepository.findAll(pageable)).thenReturn(pilgrimagePage);
 
         // When
-        List<PilgrimageDto> result = pilgrimageService.getAllPilgrimages();
+        Page<PilgrimageDto> result = pilgrimageService.getAllPilgrimages(pageable);
 
         // Then
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(pilgrimageDto1, pilgrimageDto2);
-        verify(pilgrimageRepository).findAll();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).containsExactly(pilgrimageDto1, pilgrimageDto2);
+        verify(pilgrimageRepository).findAll(pageable);
     }
 
     @Test

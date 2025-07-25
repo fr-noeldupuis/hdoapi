@@ -1,46 +1,95 @@
 package fr.noeldupuis.hdoapi.pilgrimage.controller;
 
+import fr.noeldupuis.hdoapi.common.dto.PagedResponse;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.CreatePilgrimageRequest;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.PilgrimageDto;
+import fr.noeldupuis.hdoapi.pilgrimage.dto.PilgrimageResource;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.UpdatePilgrimageRequest;
 import fr.noeldupuis.hdoapi.pilgrimage.service.PilgrimageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pilgrimages")
 @RequiredArgsConstructor
 public class PilgrimageController {
     
+    private static final String BASE_PATH = "/api/pilgrimages";
+    
     private final PilgrimageService pilgrimageService;
     
     @GetMapping
-    public ResponseEntity<List<PilgrimageDto>> getAllPilgrimages() {
-        List<PilgrimageDto> pilgrimages = pilgrimageService.getAllPilgrimages();
-        return ResponseEntity.ok(pilgrimages);
+    public ResponseEntity<PagedResponse<PilgrimageResource>> getAllPilgrimages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        
+        Page<PilgrimageDto> pilgrimagePage = pilgrimageService.getAllPilgrimages(pageable);
+        
+        List<PilgrimageResource> pilgrimageResources = pilgrimagePage.getContent().stream()
+                .map(PilgrimageResource::new)
+                .collect(Collectors.toList());
+        
+        // Add HATEOAS links to each pilgrimage resource
+        pilgrimageResources.forEach(pilgrimageResource -> {
+            pilgrimageResource.add(Link.of(BASE_PATH + "/" + pilgrimageResource.getId(), "self"));
+            pilgrimageResource.add(Link.of(BASE_PATH, "collection"));
+        });
+        
+        PagedResponse<PilgrimageResource> response = new PagedResponse<>(
+                pilgrimageResources, 
+                pilgrimagePage, 
+                BASE_PATH
+        );
+        
+        return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<PilgrimageDto> getPilgrimageById(@PathVariable Long id) {
+    public ResponseEntity<PilgrimageResource> getPilgrimageById(@PathVariable Long id) {
         return pilgrimageService.getPilgrimageById(id)
-                .map(ResponseEntity::ok)
+                .map(pilgrimageDto -> {
+                    PilgrimageResource pilgrimageResource = new PilgrimageResource(pilgrimageDto);
+                    pilgrimageResource.add(Link.of(BASE_PATH + "/" + id, "self"));
+                    pilgrimageResource.add(Link.of(BASE_PATH, "collection"));
+                    return ResponseEntity.ok(pilgrimageResource);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
     
     @PostMapping
-    public ResponseEntity<PilgrimageDto> createPilgrimage(@RequestBody CreatePilgrimageRequest request) {
+    public ResponseEntity<PilgrimageResource> createPilgrimage(@RequestBody CreatePilgrimageRequest request) {
         PilgrimageDto createdPilgrimage = pilgrimageService.createPilgrimage(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPilgrimage);
+        PilgrimageResource pilgrimageResource = new PilgrimageResource(createdPilgrimage);
+        pilgrimageResource.add(Link.of(BASE_PATH + "/" + createdPilgrimage.getId(), "self"));
+        pilgrimageResource.add(Link.of(BASE_PATH, "collection"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(pilgrimageResource);
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<PilgrimageDto> updatePilgrimage(@PathVariable Long id, @RequestBody UpdatePilgrimageRequest request) {
+    public ResponseEntity<PilgrimageResource> updatePilgrimage(@PathVariable Long id, @RequestBody UpdatePilgrimageRequest request) {
         return pilgrimageService.updatePilgrimage(id, request)
-                .map(ResponseEntity::ok)
+                .map(pilgrimageDto -> {
+                    PilgrimageResource pilgrimageResource = new PilgrimageResource(pilgrimageDto);
+                    pilgrimageResource.add(Link.of(BASE_PATH + "/" + id, "self"));
+                    pilgrimageResource.add(Link.of(BASE_PATH, "collection"));
+                    return ResponseEntity.ok(pilgrimageResource);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
     

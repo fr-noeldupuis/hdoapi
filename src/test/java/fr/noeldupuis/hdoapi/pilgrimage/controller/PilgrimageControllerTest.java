@@ -9,6 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,21 +58,26 @@ class PilgrimageControllerTest {
     void getAllPilgrimages_ShouldReturnAllPilgrimages() throws Exception {
         // Given
         List<PilgrimageDto> pilgrimages = Arrays.asList(pilgrimageDto1, pilgrimageDto2);
-        when(pilgrimageService.getAllPilgrimages()).thenReturn(pilgrimages);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<PilgrimageDto> pilgrimagePage = new PageImpl<>(pilgrimages, pageable, pilgrimages.size());
+        when(pilgrimageService.getAllPilgrimages(any(Pageable.class))).thenReturn(pilgrimagePage);
 
         // When & Then
         mockMvc.perform(get("/api/pilgrimages"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Lourdes 2025"))
-                .andExpect(jsonPath("$[0].startDate").value("2025-06-15"))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].name").value("Lourdes 2026"))
-                .andExpect(jsonPath("$[1].startDate").value("2026-07-01"));
+                .andExpect(content().contentType("application/hal+json"))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].name").value("Lourdes 2025"))
+                .andExpect(jsonPath("$.content[0].startDate").value("2025-06-15"))
+                .andExpect(jsonPath("$.content[1].id").value(2))
+                .andExpect(jsonPath("$.content[1].name").value("Lourdes 2026"))
+                .andExpect(jsonPath("$.content[1].startDate").value("2026-07-01"))
+                .andExpect(jsonPath("$.pageMetadata.page").value(0))
+                .andExpect(jsonPath("$.pageMetadata.size").value(10))
+                .andExpect(jsonPath("$.pageMetadata.totalElements").value(2));
 
-        verify(pilgrimageService).getAllPilgrimages();
+        verify(pilgrimageService).getAllPilgrimages(any(Pageable.class));
     }
 
     @Test
@@ -79,11 +88,13 @@ class PilgrimageControllerTest {
         // When & Then
         mockMvc.perform(get("/api/pilgrimages/1"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Lourdes 2025"))
                 .andExpect(jsonPath("$.startDate").value("2025-06-15"))
-                .andExpect(jsonPath("$.endDate").value("2025-06-22"));
+                .andExpect(jsonPath("$.endDate").value("2025-06-22"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/pilgrimages/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/pilgrimages"));
 
         verify(pilgrimageService).getPilgrimageById(1L);
     }
@@ -110,11 +121,13 @@ class PilgrimageControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Lourdes 2025"))
                 .andExpect(jsonPath("$.startDate").value("2025-06-15"))
-                .andExpect(jsonPath("$.endDate").value("2025-06-22"));
+                .andExpect(jsonPath("$.endDate").value("2025-06-22"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/pilgrimages/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/pilgrimages"));
 
         verify(pilgrimageService).createPilgrimage(any(CreatePilgrimageRequest.class));
     }
@@ -131,11 +144,13 @@ class PilgrimageControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType("application/hal+json"))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Lourdes 2025 Updated"))
                 .andExpect(jsonPath("$.startDate").value("2025-06-15"))
-                .andExpect(jsonPath("$.endDate").value("2025-06-22"));
+                .andExpect(jsonPath("$.endDate").value("2025-06-22"))
+                .andExpect(jsonPath("$._links.self.href").value("/api/pilgrimages/1"))
+                .andExpect(jsonPath("$._links.collection.href").value("/api/pilgrimages"));
 
         verify(pilgrimageService).updatePilgrimage(eq(1L), any(UpdatePilgrimageRequest.class));
     }

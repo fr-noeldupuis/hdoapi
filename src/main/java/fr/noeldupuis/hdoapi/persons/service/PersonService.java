@@ -3,13 +3,14 @@ package fr.noeldupuis.hdoapi.persons.service;
 import fr.noeldupuis.hdoapi.persons.dto.CreatePersonRequest;
 import fr.noeldupuis.hdoapi.persons.dto.PersonDto;
 import fr.noeldupuis.hdoapi.persons.dto.UpdatePersonRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PersonService {
     
-    List<PersonDto> getAllPersons();
+    Page<PersonDto> getAllPersons(Pageable pageable);
     
     Optional<PersonDto> getPersonById(Long id);
     
