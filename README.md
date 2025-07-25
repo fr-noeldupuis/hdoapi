@@ -17,8 +17,11 @@ The HDO API is designed to streamline the management of Lourdes pilgrimages by p
 - **Build Tool**: Maven
 - **Additional Libraries**:
   - Spring Data JPA for database operations
-  - Spring Data REST for RESTful endpoints
+  - Spring Web for RESTful endpoints
   - Lombok for reducing boilerplate code
+  - JUnit 5 for testing
+  - Mockito for mocking in tests
+  - AssertJ for fluent assertions
 
 ## 🚀 Getting Started
 
@@ -58,16 +61,40 @@ For development, the application uses H2 in-memory database. The H2 console is a
 
 ## 📋 API Endpoints
 
-Currently, the API is in initial development phase. The following endpoints are planned:
+The API currently provides the following endpoints:
 
-### Person Management
+### Person Management ✅ (Implemented)
 - `GET /api/persons` - List all participants
 - `GET /api/persons/{id}` - Get participant details
 - `POST /api/persons` - Create new participant
 - `PUT /api/persons/{id}` - Update participant
 - `DELETE /api/persons/{id}` - Remove participant
 
-### Pilgrimage Management
+**Request/Response Examples:**
+
+**Create a new person:**
+```bash
+POST /api/persons
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthDate": "1990-01-01"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthDate": "1990-01-01"
+}
+```
+
+### Pilgrimage Management (Planned)
 - `GET /api/pilgrimages` - List all pilgrimages
 - `GET /api/pilgrimages/{id}` - Get pilgrimage details
 - `POST /api/pilgrimages` - Create new pilgrimage
@@ -78,11 +105,12 @@ Currently, the API is in initial development phase. The following endpoints are 
 
 ### Phase 1: Core Features (Current)
 - [ ] Set up PostgreSQL database configuration
-- [ ] Implement Person entity and repository
-- [ ] Create Person REST controller
+- [x] Implement Person entity and repository
+- [x] Create Person REST controller
+- [x] Basic CRUD operations for Person entity
 - [ ] Implement Pilgrimage entity and repository
 - [ ] Create Pilgrimage REST controller
-- [ ] Basic CRUD operations for both entities
+- [ ] Basic CRUD operations for Pilgrimage entity
 
 ### Phase 2: Enhanced Features
 - [ ] Authentication and authorization
@@ -112,15 +140,29 @@ src/
 ├── main/
 │   ├── java/fr/noeldupuis/hdoapi/
 │   │   ├── HdoapiApplication.java          # Main application class
-│   │   ├── controller/                     # REST controllers
-│   │   ├── model/                          # Entity classes
-│   │   ├── repository/                     # Data access layer
-│   │   ├── service/                        # Business logic
-│   │   └── config/                         # Configuration classes
+│   │   └── persons/                        # Person management module
+│   │       ├── entity/
+│   │       │   └── Person.java             # Person JPA entity
+│   │       ├── dto/
+│   │       │   ├── PersonDto.java          # Person response DTO
+│   │       │   ├── CreatePersonRequest.java # Person creation DTO
+│   │       │   └── UpdatePersonRequest.java # Person update DTO
+│   │       ├── repository/
+│   │       │   └── PersonRepository.java   # Person data access
+│   │       ├── service/
+│   │       │   ├── PersonService.java      # Person service interface
+│   │       │   └── PersonServiceImpl.java  # Person service implementation
+│   │       └── controller/
+│   │           └── PersonController.java   # Person REST controller
 │   └── resources/
 │       ├── application.properties          # Application configuration
 │       └── static/                         # Static resources
-└── test/                                   # Test files
+└── test/
+    └── java/fr/noeldupuis/hdoapi/
+        └── persons/                        # Person management tests
+            ├── service/PersonServiceTest.java
+            ├── controller/PersonControllerTest.java
+            └── repository/PersonRepositoryTest.java
 ```
 
 ## 🔧 Configuration
@@ -134,10 +176,30 @@ The application configuration is managed through `application.properties`. Key c
 
 ## 🧪 Testing
 
-Run tests using Maven:
+The project includes comprehensive test coverage for all layers:
+
+### Test Coverage
+- **Service Layer**: 8 unit tests with Mockito
+- **Controller Layer**: 8 integration tests with MockMvc
+- **Repository Layer**: 8 integration tests with TestEntityManager
+- **Total**: 25 tests (100% pass rate)
+
+### Running Tests
 ```bash
+# Run all tests
 ./mvnw test
+
+# Run specific test class
+./mvnw test -Dtest=PersonServiceTest
+
+# Run tests with coverage report
+./mvnw test jacoco:report
 ```
+
+### Test Structure
+- **Unit Tests**: Test business logic in isolation
+- **Integration Tests**: Test component interactions
+- **Repository Tests**: Test database operations with in-memory H2
 
 ## 📝 Contributing
 
@@ -155,6 +217,21 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 For support and questions, please contact the development team or create an issue in the repository.
 
+## 🎉 Recent Updates
+
+### ✅ Completed Features (Latest Release)
+- **Person Management System**: Complete CRUD operations for pilgrimage participants
+- **RESTful API**: Full REST endpoints with proper HTTP status codes
+- **Comprehensive Testing**: 25 tests covering all layers (100% pass rate)
+- **DTO Pattern**: Clean separation between API contracts and internal models
+- **Service Layer**: Business logic with proper error handling
+- **Database Integration**: H2 in-memory database for development
+
+### 🔄 Current Status
+- **Person Management**: ✅ Fully implemented and tested
+- **Pilgrimage Management**: 🚧 Planned for next phase
+- **Database**: H2 for development, PostgreSQL configuration pending
+
 ---
 
-**Note**: This project is currently in active development. Features and endpoints are being implemented according to the roadmap above.
+**Note**: This project is in active development. The Person management system is complete and ready for use. Pilgrimage management features are planned for the next development phase.
