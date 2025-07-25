@@ -248,6 +248,24 @@ Content-Type: application/json
 - `PUT /api/pilgrimages/{id}` - Update pilgrimage
 - `DELETE /api/pilgrimages/{id}` - Remove pilgrimage
 
+### Enrollment Management ✅ (Implemented)
+- `POST /api/enrollments` - Create new enrollment (enroll a person in a pilgrimage)
+- `GET /api/enrollments/{id}` - Get enrollment details
+- `GET /api/enrollments` - List all enrollments (with pagination)
+- `GET /api/enrollments/person/{personId}` - Get enrollments by person
+- `GET /api/enrollments/pilgrimage/{pilgrimageId}` - Get enrollments by pilgrimage
+- `GET /api/enrollments/status/{status}` - Get enrollments by status
+- `PUT /api/enrollments/{id}` - Update enrollment (status, notes)
+- `DELETE /api/enrollments/{id}` - Remove enrollment
+- `GET /api/enrollments/check` - Check if enrollment exists
+- `GET /api/enrollments/count` - Count enrollments by pilgrimage and status
+
+**Enrollment Status Values:**
+- `PENDING` - Initial enrollment status
+- `CONFIRMED` - Enrollment confirmed
+- `CANCELLED` - Enrollment cancelled
+- `COMPLETED` - Pilgrimage completed
+
 **Request/Response Examples:**
 
 **Get paginated pilgrimages:**
@@ -312,6 +330,73 @@ Content-Type: application/json
 }
 ```
 
+**Enrollment Examples:**
+
+**Create a new enrollment:**
+```bash
+POST /api/enrollments
+Content-Type: application/json
+
+{
+  "personId": 1,
+  "pilgrimageId": 1,
+  "notes": "Special dietary requirements"
+}
+```
+
+**Response:**
+```json
+{
+  "enrollment": {
+    "id": 1,
+    "personId": 1,
+    "personName": "John Doe",
+    "pilgrimageId": 1,
+    "pilgrimageName": "Lourdes 2025",
+    "enrollmentDate": "2024-07-25T19:30:00",
+    "status": "PENDING",
+    "notes": "Special dietary requirements"
+  },
+  "_links": {
+    "self": {"href": "/api/enrollments/1"},
+    "enrollments": {"href": "/api/enrollments"},
+    "person-enrollments": {"href": "/api/enrollments/person/1"},
+    "pilgrimage-enrollments": {"href": "/api/enrollments/pilgrimage/1"}
+  }
+}
+```
+
+**Get enrollments by person:**
+```bash
+GET /api/enrollments/person/1?page=0&size=10
+```
+
+**Get enrollments by status:**
+```bash
+GET /api/enrollments/status/CONFIRMED?page=0&size=10
+```
+
+**Update enrollment status:**
+```bash
+PUT /api/enrollments/1
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED",
+  "notes": "Payment received, confirmed enrollment"
+}
+```
+
+**Check if enrollment exists:**
+```bash
+GET /api/enrollments/check?personId=1&pilgrimageId=1
+```
+
+**Count confirmed enrollments for a pilgrimage:**
+```bash
+GET /api/enrollments/count?pilgrimageId=1&status=CONFIRMED
+```
+
 ## 🗺 Roadmap
 
 ### Phase 1: Core Features ✅ (Completed)
@@ -322,13 +407,16 @@ Content-Type: application/json
 - [x] Implement Pilgrimage entity and repository
 - [x] Create Pilgrimage REST controller
 - [x] Basic CRUD operations for Pilgrimage entity
+- [x] Implement Enrollment entity and repository
+- [x] Create Enrollment REST controller
+- [x] Complete enrollment management system
 - [x] Docker containerization setup
 - [x] Multi-environment Docker configurations
 
 ### Phase 2: Enhanced Features
+- [x] Pilgrimage enrollment management ✅
 - [ ] Authentication and authorization
 - [ ] Participant registration system
-- [ ] Pilgrimage enrollment management
 - [ ] Payment tracking integration
 - [ ] Document management (passports, medical forms)
 
@@ -368,20 +456,35 @@ hdoapi/
 │   │   │   │   │   └── PersonServiceImpl.java  # Person service implementation
 │   │   │   │   └── controller/
 │   │   │   │       └── PersonController.java   # Person REST controller
-│   │   │   └── pilgrimage/                     # Pilgrimage management module
+│   │   │   ├── pilgrimage/                     # Pilgrimage management module
+│   │   │   │   ├── entity/
+│   │   │   │   │   └── Pilgrimage.java         # Pilgrimage JPA entity
+│   │   │   │   ├── dto/
+│   │   │   │   │   ├── PilgrimageDto.java      # Pilgrimage response DTO
+│   │   │   │   │   ├── CreatePilgrimageRequest.java # Pilgrimage creation DTO
+│   │   │   │   │   └── UpdatePilgrimageRequest.java # Pilgrimage update DTO
+│   │   │   │   ├── repository/
+│   │   │   │   │   └── PilgrimageRepository.java # Pilgrimage data access
+│   │   │   │   ├── service/
+│   │   │   │   │   ├── PilgrimageService.java  # Pilgrimage service interface
+│   │   │   │   │   └── PilgrimageServiceImpl.java # Pilgrimage service implementation
+│   │   │   │   └── controller/
+│   │   │   │       └── PilgrimageController.java # Pilgrimage REST controller
+│   │   │   └── enrollment/                     # Enrollment management module
 │   │   │       ├── entity/
-│   │   │       │   └── Pilgrimage.java         # Pilgrimage JPA entity
+│   │   │       │   └── Enrollment.java         # Enrollment JPA entity
 │   │   │       ├── dto/
-│   │   │       │   ├── PilgrimageDto.java      # Pilgrimage response DTO
-│   │   │       │   ├── CreatePilgrimageRequest.java # Pilgrimage creation DTO
-│   │   │       │   └── UpdatePilgrimageRequest.java # Pilgrimage update DTO
+│   │   │       │   ├── EnrollmentDto.java      # Enrollment response DTO
+│   │   │       │   ├── CreateEnrollmentRequest.java # Enrollment creation DTO
+│   │   │       │   ├── UpdateEnrollmentRequest.java # Enrollment update DTO
+│   │   │       │   └── EnrollmentResource.java # Enrollment HATEOAS resource
 │   │   │       ├── repository/
-│   │   │       │   └── PilgrimageRepository.java # Pilgrimage data access
+│   │   │       │   └── EnrollmentRepository.java # Enrollment data access
 │   │   │       ├── service/
-│   │   │       │   ├── PilgrimageService.java  # Pilgrimage service interface
-│   │   │       │   └── PilgrimageServiceImpl.java # Pilgrimage service implementation
+│   │   │       │   ├── EnrollmentService.java  # Enrollment service interface
+│   │   │       │   └── EnrollmentServiceImpl.java # Enrollment service implementation
 │   │   │       └── controller/
-│   │   │           └── PilgrimageController.java # Pilgrimage REST controller
+│   │   │           └── EnrollmentController.java # Enrollment REST controller
 │   │   └── resources/
 │   │       ├── application.properties          # Application configuration
 │   │       └── static/                         # Static resources
@@ -391,10 +494,14 @@ hdoapi/
 │           │   ├── service/PersonServiceTest.java
 │           │   ├── controller/PersonControllerTest.java
 │           │   └── repository/PersonRepositoryTest.java
-│           └── pilgrimage/                     # Pilgrimage management tests
-│               ├── service/PilgrimageServiceTest.java
-│               ├── controller/PilgrimageControllerTest.java
-│               └── repository/PilgrimageRepositoryTest.java
+│           ├── pilgrimage/                     # Pilgrimage management tests
+│           │   ├── service/PilgrimageServiceTest.java
+│           │   ├── controller/PilgrimageControllerTest.java
+│           │   └── repository/PilgrimageRepositoryTest.java
+│           └── enrollment/                     # Enrollment management tests
+│               ├── service/EnrollmentServiceTest.java
+│               ├── controller/EnrollmentControllerTest.java
+│               └── repository/EnrollmentRepositoryTest.java
 ├── Dockerfile                               # Multi-stage Docker build
 ├── .dockerignore                            # Docker build exclusions
 ├── docker-compose.yml                       # Production environment (PostgreSQL)
@@ -421,8 +528,9 @@ The project includes comprehensive test coverage for all layers:
 ### Test Coverage
 - **Person Management**: 24 tests (8 service + 8 controller + 8 repository)
 - **Pilgrimage Management**: 24 tests (8 service + 8 controller + 8 repository)
+- **Enrollment Management**: 33 tests (15 service + 11 controller + 7 repository)
 - **Application Tests**: 1 integration test
-- **Total**: 49 tests (100% pass rate)
+- **Total**: 82 tests (100% pass rate)
 
 ### Running Tests
 ```bash
@@ -463,11 +571,12 @@ For support and questions, please contact the development team or create an issu
 ### ✅ Completed Features (Latest Release)
 - **Person Management System**: Complete CRUD operations for pilgrimage participants
 - **Pilgrimage Management System**: Complete CRUD operations for pilgrimage events
+- **Enrollment Management System**: Complete enrollment management with status tracking
 - **RESTful API**: Full REST endpoints with proper HTTP status codes
 - **HATEOAS Support**: Hypermedia-driven API with self-discoverable links
 - **Pagination & Sorting**: Efficient data retrieval with configurable page size and sorting
 - **API Documentation**: Interactive Swagger UI with complete OpenAPI specification
-- **Comprehensive Testing**: 49 tests covering all layers (100% pass rate)
+- **Comprehensive Testing**: 82 tests covering all layers (100% pass rate)
 - **DTO Pattern**: Clean separation between API contracts and internal models
 - **Service Layer**: Business logic with proper error handling
 - **Database Integration**: H2 in-memory database for development
@@ -478,10 +587,11 @@ For support and questions, please contact the development team or create an issu
 ### 🔄 Current Status
 - **Person Management**: ✅ Fully implemented and tested
 - **Pilgrimage Management**: ✅ Fully implemented and tested
+- **Enrollment Management**: ✅ Fully implemented and tested
 - **Database**: H2 for development, PostgreSQL for production (both containerized)
 - **Docker Setup**: ✅ Production-ready with PostgreSQL and development with H2
 - **Deployment**: Ready for containerized deployment
 
 ---
 
-**Note**: This project is in active development. Both Person and Pilgrimage management systems are complete and ready for use. Phase 1 core features are fully implemented including Docker containerization. The application is now ready for both local development and production deployment using Docker. Next development phase will focus on enhanced features like authentication, enrollment management, and advanced business logic.
+**Note**: This project is in active development. Person, Pilgrimage, and Enrollment management systems are complete and ready for use. Phase 1 core features and Phase 2 enrollment management are fully implemented including Docker containerization. The application is now ready for both local development and production deployment using Docker. Next development phase will focus on enhanced features like authentication, payment tracking, and advanced business logic.
