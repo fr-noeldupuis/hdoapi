@@ -18,6 +18,7 @@ The HDO API is designed to streamline the management of Lourdes pilgrimages by p
 - **Additional Libraries**:
   - Spring Data JPA for database operations
   - Spring Web for RESTful endpoints
+  - Spring HATEOAS for hypermedia support
   - Lombok for reducing boilerplate code
   - JUnit 5 for testing
   - Mockito for mocking in tests
@@ -134,16 +135,58 @@ The project includes comprehensive Docker support with helper scripts:
 
 ## 📋 API Endpoints
 
-The API currently provides the following endpoints:
+The API currently provides the following endpoints with **HATEOAS support** and **pagination**:
 
 ### Person Management ✅ (Implemented)
-- `GET /api/persons` - List all participants
+- `GET /api/persons` - List all participants (with pagination & sorting)
 - `GET /api/persons/{id}` - Get participant details
 - `POST /api/persons` - Create new participant
 - `PUT /api/persons/{id}` - Update participant
 - `DELETE /api/persons/{id}` - Remove participant
 
+**Pagination Parameters:**
+- `page` (default: 0) - Page number (0-based)
+- `size` (default: 10) - Number of items per page
+- `sortBy` (default: "id") - Field to sort by
+- `sortDir` (default: "asc") - Sort direction ("asc" or "desc")
+
 **Request/Response Examples:**
+
+**Get paginated persons:**
+```bash
+GET /api/persons?page=0&size=5&sortBy=firstName&sortDir=asc
+```
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "birthDate": "1990-01-01",
+      "_links": {
+        "self": {"href": "/api/persons/1"},
+        "collection": {"href": "/api/persons"}
+      }
+    }
+  ],
+  "pageMetadata": {
+    "page": 0,
+    "size": 5,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true,
+    "hasNext": false,
+    "hasPrevious": false
+  },
+  "_links": {
+    "self": {"href": "/api/persons?page=0&size=5"}
+  }
+}
+```
 
 **Create a new person:**
 ```bash
@@ -163,18 +206,58 @@ Content-Type: application/json
   "id": 1,
   "firstName": "John",
   "lastName": "Doe",
-  "birthDate": "1990-01-01"
+  "birthDate": "1990-01-01",
+  "_links": {
+    "self": {"href": "/api/persons/1"},
+    "collection": {"href": "/api/persons"}
+  }
 }
 ```
 
 ### Pilgrimage Management ✅ (Implemented)
-- `GET /api/pilgrimages` - List all pilgrimages
+- `GET /api/pilgrimages` - List all pilgrimages (with pagination & sorting)
 - `GET /api/pilgrimages/{id}` - Get pilgrimage details
 - `POST /api/pilgrimages` - Create new pilgrimage
 - `PUT /api/pilgrimages/{id}` - Update pilgrimage
 - `DELETE /api/pilgrimages/{id}` - Remove pilgrimage
 
 **Request/Response Examples:**
+
+**Get paginated pilgrimages:**
+```bash
+GET /api/pilgrimages?page=0&size=10&sortBy=name&sortDir=asc
+```
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Lourdes 2025",
+      "startDate": "2025-06-15",
+      "endDate": "2025-06-22",
+      "_links": {
+        "self": {"href": "/api/pilgrimages/1"},
+        "collection": {"href": "/api/pilgrimages"}
+      }
+    }
+  ],
+  "pageMetadata": {
+    "page": 0,
+    "size": 10,
+    "totalElements": 1,
+    "totalPages": 1,
+    "first": true,
+    "last": true,
+    "hasNext": false,
+    "hasPrevious": false
+  },
+  "_links": {
+    "self": {"href": "/api/pilgrimages?page=0&size=10"}
+  }
+}
+```
 
 **Create a new pilgrimage:**
 ```bash
@@ -194,7 +277,11 @@ Content-Type: application/json
   "id": 1,
   "name": "Lourdes 2025",
   "startDate": "2025-06-15",
-  "endDate": "2025-06-22"
+  "endDate": "2025-06-22",
+  "_links": {
+    "self": {"href": "/api/pilgrimages/1"},
+    "collection": {"href": "/api/pilgrimages"}
+  }
 }
 ```
 
@@ -350,6 +437,8 @@ For support and questions, please contact the development team or create an issu
 - **Person Management System**: Complete CRUD operations for pilgrimage participants
 - **Pilgrimage Management System**: Complete CRUD operations for pilgrimage events
 - **RESTful API**: Full REST endpoints with proper HTTP status codes
+- **HATEOAS Support**: Hypermedia-driven API with self-discoverable links
+- **Pagination & Sorting**: Efficient data retrieval with configurable page size and sorting
 - **Comprehensive Testing**: 49 tests covering all layers (100% pass rate)
 - **DTO Pattern**: Clean separation between API contracts and internal models
 - **Service Layer**: Business logic with proper error handling

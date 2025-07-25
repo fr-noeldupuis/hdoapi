@@ -6,11 +6,11 @@ import fr.noeldupuis.hdoapi.pilgrimage.dto.UpdatePilgrimageRequest;
 import fr.noeldupuis.hdoapi.pilgrimage.entity.Pilgrimage;
 import fr.noeldupuis.hdoapi.pilgrimage.repository.PilgrimageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,11 +19,9 @@ public class PilgrimageServiceImpl implements PilgrimageService {
     private final PilgrimageRepository pilgrimageRepository;
     
     @Override
-    public List<PilgrimageDto> getAllPilgrimages() {
-        return pilgrimageRepository.findAll()
-                .stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+    public Page<PilgrimageDto> getAllPilgrimages(Pageable pageable) {
+        return pilgrimageRepository.findAll(pageable)
+                .map(this::convertToDto);
     }
     
     @Override

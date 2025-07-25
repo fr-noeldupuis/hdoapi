@@ -3,13 +3,14 @@ package fr.noeldupuis.hdoapi.pilgrimage.service;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.CreatePilgrimageRequest;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.PilgrimageDto;
 import fr.noeldupuis.hdoapi.pilgrimage.dto.UpdatePilgrimageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PilgrimageService {
     
-    List<PilgrimageDto> getAllPilgrimages();
+    Page<PilgrimageDto> getAllPilgrimages(Pageable pageable);
     
     Optional<PilgrimageDto> getPilgrimageById(Long id);
     

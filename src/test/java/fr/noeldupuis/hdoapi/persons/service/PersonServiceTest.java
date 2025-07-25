@@ -11,6 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -48,15 +52,17 @@ class PersonServiceTest {
     void getAllPersons_ShouldReturnAllPersons() {
         // Given
         List<Person> persons = Arrays.asList(person1, person2);
-        when(personRepository.findAll()).thenReturn(persons);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Person> personPage = new PageImpl<>(persons, pageable, persons.size());
+        when(personRepository.findAll(pageable)).thenReturn(personPage);
 
         // When
-        List<PersonDto> result = personService.getAllPersons();
+        Page<PersonDto> result = personService.getAllPersons(pageable);
 
         // Then
-        assertThat(result).hasSize(2);
-        assertThat(result).containsExactly(personDto1, personDto2);
-        verify(personRepository).findAll();
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).containsExactly(personDto1, personDto2);
+        verify(personRepository).findAll(pageable);
     }
 
     @Test
