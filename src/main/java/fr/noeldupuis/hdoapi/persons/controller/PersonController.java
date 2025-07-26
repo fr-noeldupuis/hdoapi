@@ -2,8 +2,6 @@ package fr.noeldupuis.hdoapi.persons.controller;
 
 import fr.noeldupuis.hdoapi.common.dto.PagedResponse;
 import fr.noeldupuis.hdoapi.persons.dto.CreatePersonRequest;
-import fr.noeldupuis.hdoapi.persons.dto.PartialUpdatePersonRequest;
-import fr.noeldupuis.hdoapi.persons.dto.PatchPersonRequest;
 import fr.noeldupuis.hdoapi.persons.dto.PersonDto;
 import fr.noeldupuis.hdoapi.persons.dto.PersonResource;
 import fr.noeldupuis.hdoapi.persons.dto.UpdatePersonRequest;
@@ -223,84 +221,26 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
-    // Approach 1: Simple Partial Update (Recommended for most use cases)
+    // JSON Merge Patch (RFC 7386) - Standard partial update
     @PatchMapping("/{id}")
     @Operation(
-        summary = "Partially update a person",
-        description = "Update only specific fields of an existing pilgrimage participant"
+        summary = "Partially update a person using JSON Merge Patch (RFC 7386)",
+        description = "Update specific fields of an existing pilgrimage participant using JSON Merge Patch format"
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Person partially updated successfully",
             content = @Content(mediaType = "application/hal+json",
                 schema = @Schema(implementation = PersonResource.class))),
         @ApiResponse(responseCode = "404", description = "Person not found"),
-        @ApiResponse(responseCode = "400", description = "Invalid request data")
-    })
-    public ResponseEntity<PersonResource> partialUpdatePerson(
-            @Parameter(description = "Person ID", example = "1")
-            @PathVariable Long id,
-            @Parameter(description = "Partial person data (only include fields to update)", required = true)
-            @RequestBody PartialUpdatePersonRequest request) {
-        
-        PersonDto updatedPerson = personService.partialUpdatePerson(id, request);
-        PersonResource personResource = new PersonResource(updatedPerson);
-        
-        // Add HATEOAS links
-        personResource.add(Link.of(BASE_PATH + "/" + id, "self"));
-        personResource.add(Link.of(BASE_PATH, "collection"));
-        
-        return ResponseEntity.ok(personResource);
-    }
-    
-    // Approach 2: JSON Patch (RFC 6902) - Standard but more complex
-    @PatchMapping("/{id}/patch")
-    @Operation(
-        summary = "Patch a person using JSON Patch (RFC 6902)",
-        description = "Update a person using standard JSON Patch operations"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Person patched successfully",
-            content = @Content(mediaType = "application/hal+json",
-                schema = @Schema(implementation = PersonResource.class))),
-        @ApiResponse(responseCode = "404", description = "Person not found"),
-        @ApiResponse(responseCode = "400", description = "Invalid patch operation")
+        @ApiResponse(responseCode = "400", description = "Invalid patch data")
     })
     public ResponseEntity<PersonResource> patchPerson(
             @Parameter(description = "Person ID", example = "1")
             @PathVariable Long id,
-            @Parameter(description = "JSON Patch operations", required = true)
-            @RequestBody PatchPersonRequest request) {
-        
-        PersonDto updatedPerson = personService.patchPerson(id, request.getOperations());
-        PersonResource personResource = new PersonResource(updatedPerson);
-        
-        // Add HATEOAS links
-        personResource.add(Link.of(BASE_PATH + "/" + id, "self"));
-        personResource.add(Link.of(BASE_PATH, "collection"));
-        
-        return ResponseEntity.ok(personResource);
-    }
-    
-    // Approach 3: JSON Merge Patch (RFC 7386) - Simple and elegant
-    @PatchMapping("/{id}/merge")
-    @Operation(
-        summary = "Merge patch a person using JSON Merge Patch (RFC 7386)",
-        description = "Update a person using JSON Merge Patch format"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Person merge patched successfully",
-            content = @Content(mediaType = "application/hal+json",
-                schema = @Schema(implementation = PersonResource.class))),
-        @ApiResponse(responseCode = "404", description = "Person not found"),
-        @ApiResponse(responseCode = "400", description = "Invalid merge patch")
-    })
-    public ResponseEntity<PersonResource> mergePatchPerson(
-            @Parameter(description = "Person ID", example = "1")
-            @PathVariable Long id,
-            @Parameter(description = "JSON Merge Patch", required = true)
+            @Parameter(description = "JSON Merge Patch - include only fields to update", required = true)
             @RequestBody JsonNode patch) {
         
-        PersonDto updatedPerson = personService.mergePatchPerson(id, patch);
+        PersonDto updatedPerson = personService.patchPerson(id, patch);
         PersonResource personResource = new PersonResource(updatedPerson);
         
         // Add HATEOAS links
