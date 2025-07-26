@@ -3,7 +3,6 @@ package fr.noeldupuis.hdoapi.persons.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.noeldupuis.hdoapi.persons.entity.Person;
 import fr.noeldupuis.hdoapi.persons.repository.PersonRepository;
 import lombok.RequiredArgsConstructor;

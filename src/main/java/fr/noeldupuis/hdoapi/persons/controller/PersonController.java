@@ -7,9 +7,6 @@ import fr.noeldupuis.hdoapi.persons.dto.PatchPersonRequest;
 import fr.noeldupuis.hdoapi.persons.dto.PersonDto;
 import fr.noeldupuis.hdoapi.persons.dto.PersonResource;
 import fr.noeldupuis.hdoapi.persons.dto.UpdatePersonRequest;
-import fr.noeldupuis.hdoapi.persons.service.PersonJsonMergePatchService;
-import fr.noeldupuis.hdoapi.persons.service.PersonPartialUpdateService;
-import fr.noeldupuis.hdoapi.persons.service.PersonPatchService;
 import fr.noeldupuis.hdoapi.persons.service.PersonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,9 +40,6 @@ public class PersonController {
     private static final String BASE_PATH = "/api/persons";
     
     private final PersonService personService;
-    private final PersonPartialUpdateService personPartialUpdateService;
-    private final PersonPatchService personPatchService;
-    private final PersonJsonMergePatchService personJsonMergePatchService;
     
     @GetMapping
     @Operation(

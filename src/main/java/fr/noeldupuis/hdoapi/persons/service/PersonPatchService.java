@@ -1,6 +1,5 @@
 package fr.noeldupuis.hdoapi.persons.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.noeldupuis.hdoapi.persons.dto.PatchPersonRequest;
 import fr.noeldupuis.hdoapi.persons.entity.Person;
@@ -19,7 +18,6 @@ import java.util.List;
 public class PersonPatchService {
     
     private final PersonRepository personRepository;
-    private final ObjectMapper objectMapper;
     
     @Transactional
     public Person patchPerson(Long id, List<PatchPersonRequest.Operation> operations) {
